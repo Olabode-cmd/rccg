@@ -92,7 +92,10 @@ const HomeScreen = () => {
             <Text style={styles.dateText}>{todaysDate}</Text>
             <Text style={styles.headerTitle}>Daily Devotional</Text>
           </View>
-          <TouchableOpacity style={styles.profileButton}>
+          <TouchableOpacity 
+            style={styles.profileButton}
+            onPress={() => router.push('/bookmarks')}
+          >
             <Feather name="bookmark" size={18} color="#3B82F6" />
           </TouchableOpacity>
         </View>

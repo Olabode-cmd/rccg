@@ -1,7 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { format } from 'date-fns';
+import { Feather } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
+import { isBookmarked, addBookmark, removeBookmark, initDatabase } from '@/util/db';
 
 interface DevotionalParams extends Record<string, string> {
   id: string;
@@ -13,6 +16,45 @@ interface DevotionalParams extends Record<string, string> {
 
 export default function DevotionalDetails() {
   const params = useLocalSearchParams<DevotionalParams>();
+  const [isBookmarkedState, setIsBookmarkedState] = useState(false);
+
+  useEffect(() => {
+    setupAndCheckBookmark();
+  }, []);
+
+  const setupAndCheckBookmark = async () => {
+    try {
+      await initDatabase();
+      await checkBookmarkStatus();
+    } catch (error) {
+      // Handle error silently
+    }
+  };
+
+  const checkBookmarkStatus = async () => {
+    const status = await isBookmarked(parseInt(params.id));
+    setIsBookmarkedState(status);
+  };
+
+  const toggleBookmark = async () => {
+    try {
+      if (isBookmarkedState) {
+        await removeBookmark(parseInt(params.id));
+      } else {
+        await addBookmark({
+          id: parseInt(params.id),
+          program: params.program,
+          date: params.date,
+          topic: params.title,
+          content: params.content,
+          created_at: new Date().toISOString(),
+        });
+      }
+      setIsBookmarkedState(!isBookmarkedState);
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    }
+  };
 
   const formattedContent = params.content?.replace(/\\n/g, '\n');
 
@@ -22,6 +64,18 @@ export default function DevotionalDetails() {
         options={{
           title: params.program,
           headerBackTitle: 'Back',
+          headerRight: () => (
+            <TouchableOpacity 
+              onPress={toggleBookmark}
+              style={styles.bookmarkButton}
+            >
+              {isBookmarkedState ? (
+                <FontAwesome name="bookmark" size={20} color="#3B82F6" />
+              ) : (
+                <Feather name="bookmark" size={20} color="#3B82F6" />
+              )}
+            </TouchableOpacity>
+          ),
         }}
       />
       <ScrollView style={styles.container}>
@@ -60,5 +114,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#334155',
+  },
+  bookmarkButton: {
+    padding: 8,
+    marginRight: 8,
   },
 }); 

@@ -21,6 +21,16 @@ export interface DailyStudy {
   created_at: string;
 }
 
+export interface Bookmark {
+  id: number;
+  devotional_id: number;
+  program: string;
+  date: string;
+  topic: string;
+  content: string;
+  created_at: string;
+}
+
 let db: SQLite.SQLiteDatabase | null = null;
 let isInitialized = false;
 
@@ -45,7 +55,7 @@ export const initDatabase = async () => {
   const db = await getDb();
   
   try {
-    // Create table if it doesn't exist (don't drop)
+    // Create devotionals table if it doesn't exist
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS devotionals (
         id INTEGER PRIMARY KEY,
@@ -54,6 +64,20 @@ export const initDatabase = async () => {
         topic TEXT NOT NULL,
         content TEXT NOT NULL,
         created_at TEXT NOT NULL
+      );
+    `);
+
+    // Create bookmarks table if it doesn't exist
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS bookmarks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        devotional_id INTEGER NOT NULL,
+        program TEXT NOT NULL,
+        date TEXT NOT NULL,
+        topic TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(devotional_id)
       );
     `);
 
@@ -68,15 +92,10 @@ export const initDatabase = async () => {
 export const saveDailyStudy = async (devotional: Devotional) => {
   const db = await getDb();
   try {
-    console.log('Saving devotional to database:', devotional);
-    // Escape single quotes and clean content
     const escapedContent = devotional.content.replace(/'/g, "''").replace(/\n/g, '\\n');
     const escapedTopic = devotional.topic.replace(/'/g, "''");
     
-    const queryString = `INSERT OR REPLACE INTO devotionals (id, program, date, topic, content, created_at) VALUES (${devotional.id}, '${devotional.program}', '${devotional.date}', '${escapedTopic}', '${escapedContent}', '${devotional.created_at}')`;
-    console.log('Executing query:', queryString);
-    await db.execAsync(queryString);
-    console.log('Successfully saved devotional:', devotional.id);
+    await db.execAsync(`INSERT OR REPLACE INTO devotionals (id, program, date, topic, content, created_at) VALUES (${devotional.id}, '${devotional.program}', '${devotional.date}', '${escapedTopic}', '${escapedContent}', '${devotional.created_at}')`);
     return true;
   } catch (error) {
     console.error('Error saving devotional:', error);
@@ -87,7 +106,6 @@ export const saveDailyStudy = async (devotional: Devotional) => {
 export const getDailyStudies = async (program: string, month?: string) => {
   const db = await getDb();
   try {
-    // Make sure database is initialized
     await initDatabase();
     
     let query = 'SELECT * FROM devotionals';
@@ -106,9 +124,7 @@ export const getDailyStudies = async (program: string, month?: string) => {
 
     query += ' ORDER BY date DESC';
     
-    console.log('Executing query:', query, 'with params:', params);
     const result = await db.getAllAsync<Devotional>(query, params);
-    console.log('Query result:', result);
     return result;
   } catch (error) {
     console.error('Error getting devotionals:', error);
@@ -154,15 +170,10 @@ export async function fetchDailyStudyByDateFromAPI(date: string): Promise<DailyS
 
 export async function syncDailyStudiesWithAPI(): Promise<void> {
   try {
-    // Ensure database is initialized first
     await initDatabase();
-    
-    console.log('Starting sync...');
     const studies = await fetchDailyStudiesFromAPI();
-    console.log('Studies to sync:', studies.length);
     
     for (const study of studies) {
-      console.log('Saving study:', study);
       await saveDailyStudy({
         id: study.id,
         program: study.program,
@@ -172,9 +183,67 @@ export async function syncDailyStudiesWithAPI(): Promise<void> {
         created_at: study.created_at
       });
     }
-    console.log('Sync completed successfully');
   } catch (error) {
-    console.error('Error in syncDailyStudiesWithAPI:', error);
+    console.error('Error syncing daily studies:', error);
     throw error;
   }
 }
+
+// Bookmark related functions
+export const addBookmark = async (devotional: Devotional) => {
+  const db = await getDb();
+  try {
+    await initDatabase();
+    const escapedContent = devotional.content.replace(/'/g, "''").replace(/\n/g, '\\n');
+    const escapedTopic = devotional.topic.replace(/'/g, "''");
+    
+    await db.execAsync(`
+      INSERT OR REPLACE INTO bookmarks 
+      (devotional_id, program, date, topic, content, created_at)
+      VALUES 
+      (${devotional.id}, '${devotional.program}', '${devotional.date}', '${escapedTopic}', '${escapedContent}', '${devotional.created_at}')
+    `);
+    return true;
+  } catch (error) {
+    console.error('Error adding bookmark:', error);
+    return false;
+  }
+};
+
+export const removeBookmark = async (devotionalId: number) => {
+  const db = await getDb();
+  try {
+    await db.execAsync(`DELETE FROM bookmarks WHERE devotional_id = ${devotionalId}`);
+    return true;
+  } catch (error) {
+    console.error('Error removing bookmark:', error);
+    return false;
+  }
+};
+
+export const isBookmarked = async (devotionalId: number): Promise<boolean> => {
+  const db = await getDb();
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM bookmarks WHERE devotional_id = ?',
+      [devotionalId]
+    );
+    return (result?.count ?? 0) > 0;
+  } catch (error) {
+    console.error('Error checking bookmark:', error);
+    return false;
+  }
+};
+
+export const getBookmarks = async (): Promise<Bookmark[]> => {
+  const db = await getDb();
+  try {
+    const bookmarks = await db.getAllAsync<Bookmark>(
+      'SELECT * FROM bookmarks ORDER BY date DESC'
+    );
+    return bookmarks;
+  } catch (error) {
+    console.error('Error getting bookmarks:', error);
+    return [];
+  }
+};
