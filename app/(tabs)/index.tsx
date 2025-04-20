@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Platform, View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { format } from 'date-fns';
 import OtherPrograms from '@/components/OtherPrograms';
 import HomeHymns from '@/components/HomeHymns';
+import { getDailyStudyByDate } from '@/util/db';
 
 // Hardcoded image import
 import OpenHeavensImg from "@/assets/images/bible-img.jpg";
@@ -11,12 +14,11 @@ import OpenHeavensImg from "@/assets/images/bible-img.jpg";
 // Type definitions
 interface Devotional {
   id: number;
-  title: string;
-  theme: string;
-  scripture: string;
-  preview: string;
+  program: string;
   date: string;
-  author?: string;
+  topic: string;
+  content: string;
+  created_at: string;
 }
 
 interface Program {
@@ -45,11 +47,11 @@ const devotionalData = {
 const HomeScreen = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // console.log(process.env.EXPO_PUBLIC_API_URL);
+  const [todayDevotional, setTodayDevotional] = useState<Devotional | null>(null);
 
   useEffect(() => {
     fetchPrograms();
+    fetchTodayDevotional();
   }, []);
 
   const fetchPrograms = async () => {
@@ -67,6 +69,16 @@ const HomeScreen = () => {
     }
   };
 
+  const fetchTodayDevotional = async () => {
+    try {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const devotional = await getDailyStudyByDate('Open Heavens', today);
+      setTodayDevotional(devotional);
+    } catch (error) {
+      console.error('Error fetching today\'s devotional:', error);
+    }
+  };
+
   const cleanTitle = (title: string) => {
     // Remove the WebKit form boundary text that appears in some titles
     return title.split('\\r\\n')[0].trim();
@@ -81,14 +93,30 @@ const HomeScreen = () => {
             <Text style={styles.headerTitle}>Daily Devotional</Text>
           </View>
           <TouchableOpacity style={styles.profileButton}>
-            <Feather name="user" size={24} color="#3B82F6" />
+            <Feather name="bookmark" size={18} color="#3B82F6" />
           </TouchableOpacity>
         </View>
 
-        {/* Featured Open Heavens Devotional - with hardcoded image */}
+        {/* Daily Open Heavens Devotional */}
         <View style={styles.featuredSection}>
           <Text style={styles.sectionTitle}>Today's Devotional</Text>
-          <TouchableOpacity style={styles.featuredCard}>
+          <TouchableOpacity 
+            style={styles.featuredCard}
+            onPress={() => {
+              if (todayDevotional) {
+                router.push({
+                  pathname: '/devotional/[id]',
+                  params: {
+                    id: todayDevotional.id,
+                    title: todayDevotional.topic,
+                    date: todayDevotional.date,
+                    content: todayDevotional.content,
+                    program: todayDevotional.program
+                  }
+                });
+              }
+            }}
+          >
             <Image
               source={OpenHeavensImg}
               style={styles.featuredImage}
@@ -96,19 +124,27 @@ const HomeScreen = () => {
             />
             <View style={styles.overlay}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{devotionalData.title}</Text>
+                <Text style={styles.badgeText}>Open Heavens</Text>
               </View>
             </View>
             <View style={styles.featuredContent}>
-              <Text style={styles.featuredTheme}>{devotionalData.theme}</Text>
-              <Text style={styles.scriptureText}>{devotionalData.scripture}</Text>
-              <Text numberOfLines={2} style={styles.previewText}>
-                {devotionalData.preview}
-              </Text>
-              <View style={styles.readMoreContainer}>
-                <Text style={styles.readMoreText}>Read Today's Devotional</Text>
-                <Feather name="arrow-right" size={16} color="#3B82F6" />
-              </View>
+              {todayDevotional ? (
+                <>
+                  <Text style={styles.featuredTheme}>{todayDevotional.topic}</Text>
+                  <Text numberOfLines={3} style={styles.previewText}>
+                    {todayDevotional.content}
+                  </Text>
+                  <View style={styles.readMoreContainer}>
+                    <Text style={styles.readMoreText}>Read Today's Devotional</Text>
+                    <Feather name="arrow-right" size={16} color="#3B82F6" />
+                  </View>
+                </>
+              ) : (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#3B82F6" />
+                  <Text style={styles.loadingText}>Loading devotional...</Text>
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -290,6 +326,17 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginVertical: 20,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#3B82F6',
+    marginLeft: 8,
   },
 });
 
