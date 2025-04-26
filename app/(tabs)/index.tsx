@@ -6,20 +6,10 @@ import { router } from 'expo-router';
 import { format } from 'date-fns';
 import OtherPrograms from '@/components/OtherPrograms';
 import HomeHymns from '@/components/HomeHymns';
-import { getDailyStudyByDate } from '@/util/db';
+import { getDailyStudyByDate, Devotional } from '@/util/db';
 
 // Hardcoded image import
 import OpenHeavensImg from "@/assets/images/bible-img.jpg";
-
-// Type definitions
-interface Devotional {
-  id: number;
-  program: string;
-  date: string;
-  topic: string;
-  content: string;
-  created_at: string;
-}
 
 interface Program {
   id: number;
@@ -45,39 +35,29 @@ const devotionalData = {
 };
 
 const HomeScreen = () => {
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [loading, setLoading] = useState(true);
   const [todayDevotional, setTodayDevotional] = useState<Devotional | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPrograms();
-    fetchTodayDevotional();
-  }, []);
-
-  const fetchPrograms = async () => {
+  const loadTodayDevotional = async () => {
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/programs`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setPrograms(data);
+      setLoading(true);
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const devotional = await getDailyStudyByDate('Open Heavens', today);
+      setTodayDevotional(devotional);
     } catch (error) {
-      console.error('Error fetching programs:', error);
+      console.error('Error loading today devotional:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchTodayDevotional = async () => {
-    try {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const devotional = await getDailyStudyByDate('Open Heavens', today);
-      setTodayDevotional(devotional);
-    } catch (error) {
-      console.error('Error fetching today\'s devotional:', error);
-    }
-  };
+  useEffect(() => {
+    loadTodayDevotional();
+  }, []);
+
+  const onRefresh = React.useCallback(() => {
+    loadTodayDevotional();
+  }, []);
 
   const cleanTitle = (title: string) => {
     // Remove the WebKit form boundary text that appears in some titles
@@ -103,7 +83,7 @@ const HomeScreen = () => {
         {/* Daily Open Heavens Devotional */}
         <View style={styles.featuredSection}>
           <Text style={styles.sectionTitle}>Today's Devotional</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.featuredCard}
             onPress={() => {
               if (todayDevotional) {
@@ -131,7 +111,12 @@ const HomeScreen = () => {
               </View>
             </View>
             <View style={styles.featuredContent}>
-              {todayDevotional ? (
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#3B82F6" />
+                  <Text style={styles.loadingText}>Loading devotional...</Text>
+                </View>
+              ) : todayDevotional ? (
                 <>
                   <Text style={styles.featuredTheme}>{todayDevotional.topic}</Text>
                   <Text numberOfLines={3} style={styles.previewText}>
@@ -144,8 +129,7 @@ const HomeScreen = () => {
                 </>
               ) : (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#3B82F6" />
-                  <Text style={styles.loadingText}>Loading devotional...</Text>
+                  <Text style={styles.loadingText}>No devotional available for today</Text>
                 </View>
               )}
             </View>
@@ -153,7 +137,7 @@ const HomeScreen = () => {
         </View>
 
         {/* Programs List */}
-        <OtherPrograms programs={programs} loading={loading} />
+        <OtherPrograms />
 
         {/* Hymns Section */}
         <HomeHymns />

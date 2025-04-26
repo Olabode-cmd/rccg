@@ -93,7 +93,7 @@ export default function ProgramDetails() {
           title: title as string,
         }}
       />
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         refreshControl={
           <RefreshControl

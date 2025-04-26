@@ -2,6 +2,7 @@
 import * as SQLite from "expo-sqlite";
 import { Platform } from 'react-native';
 import axios from 'axios';
+import { useState, useEffect } from 'react'
 
 export interface Devotional {
   id: number;
@@ -28,6 +29,11 @@ export interface Bookmark {
   date: string;
   topic: string;
   content: string;
+  created_at: string;
+}
+export interface Program {
+  id: number;
+  title: string;
   created_at: string;
 }
 
@@ -78,6 +84,15 @@ export const initDatabase = async () => {
         content TEXT NOT NULL,
         created_at TEXT NOT NULL,
         UNIQUE(devotional_id)
+      );
+    `);
+
+    // Create Prograns table
+     await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS programs (
+        id INTEGER PRIMARY KEY,
+        title TEXT NOT NULL,
+        created_at TEXT NOT NULL
       );
     `);
 
@@ -247,3 +262,112 @@ export const getBookmarks = async (): Promise<Bookmark[]> => {
     return [];
   }
 };
+
+// Programs
+let programsCache: Program[] | null = null;
+export const fetchAndSyncPrograms = async (
+  forceRefresh = false
+): Promise<Program[]> => {
+  // Ensure database is initialized first
+  await initDatabase();
+
+  try {
+    // Always try API first
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/programs`);
+    if (response.ok) {
+      const data = await response.json();
+      // Save to SQLite
+      await savePrograms(data);
+      programsCache = data;
+      return data;
+    }
+  } catch (error) {
+    console.log("API fetch failed, falling back to local data");
+  }
+
+  // If API fails, try to get local data
+  try {
+    const localPrograms = await getPrograms();
+    if (localPrograms && localPrograms.length > 0) {
+      programsCache = localPrograms;
+      return localPrograms;
+    }
+  } catch (error) {
+    console.error("Error getting local programs:", error);
+  }
+
+  // If both API and local data fail, return empty array
+  return [];
+};
+
+export const usePrograms = (initialFetch = true) => {
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const loadPrograms = async (forceRefresh = false) => {
+    try {
+      setLoading(true);
+      const data = await fetchAndSyncPrograms(forceRefresh);
+      setPrograms(data);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error("Failed to fetch programs")
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch on mount
+  useEffect(() => {
+    if (initialFetch) {
+      loadPrograms();
+    }
+  }, []);
+
+  return {
+    programs,
+    loading,
+    error,
+    refreshPrograms: () => loadPrograms(true),
+    loadPrograms,
+  };
+};
+
+// Make sure to properly handle database operations
+// In util/db.ts
+
+export const savePrograms = async (programs: Program[]) => {
+  const db = await getDb();
+  try {
+    // Delete existing programs
+    await db.execAsync('DELETE FROM programs');
+    
+    // Insert new programs
+    for (const program of programs) {
+      const escapedTitle = program.title.replace(/'/g, "''");
+      await db.execAsync(`
+        INSERT INTO programs (id, title, created_at)
+        VALUES (${program.id}, '${escapedTitle}', '${program.created_at}')
+      `);
+    }
+  } catch (error) {
+    console.error('Error saving programs:', error);
+    throw error;
+  }
+};
+
+
+export const getPrograms = async (): Promise<Program[]> => {
+  const db = await getDb();
+  try {
+    const result = await db.getAllAsync<Program>("SELECT * FROM programs");
+    return result || [];
+  } catch (error) {
+    console.error("Error getting programs:", error);
+    return [];
+  }
+};
+

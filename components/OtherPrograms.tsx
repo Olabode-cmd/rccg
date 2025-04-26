@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import { usePrograms } from '../util/db';
+
 
 interface Program {
   id: number;
@@ -19,9 +21,14 @@ const cleanTitle = (title: string) => {
   return title.split('\\r\\n')[0].trim();
 };
 
-const OtherPrograms = ({ programs, loading }: OtherProgramsProps) => {
+const OtherPrograms = () => {
   // Only show first 4 programs
+  const { programs, loading, error } = usePrograms();
   const displayPrograms = programs.slice(0, 4);
+
+  if (error) {
+    return <Text>{error.message}</Text>;
+  }
 
   return (
     <View style={styles.programsSection}>

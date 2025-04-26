@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Alert, RefreshControl } from 'react-native';
 import { Stack, Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { syncDailyStudiesWithAPI } from '@/util/db';
+import { syncDailyStudiesWithAPI, usePrograms } from '@/util/db';
+
 
 interface Program {
   id: number;
@@ -15,58 +16,15 @@ const cleanTitle = (title: string) => {
 };
 
 export default function Programs() {
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const { programs, loading, refreshPrograms } = usePrograms(true);
 
-  useEffect(() => {
-    fetchPrograms();
+  const onRefresh = React.useCallback(() => {
+    refreshPrograms();
   }, []);
 
-  const fetchPrograms = async () => {
-    try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/programs`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setPrograms(data);
-    } catch (error) {
-      console.error('Error fetching programs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      console.log('Starting sync from programs page...');
-      await syncDailyStudiesWithAPI();
-      console.log('Sync completed successfully');
-      Alert.alert('Success', 'Successfully downloaded new devotionals');
-    } catch (error) {
-      console.error('Sync error:', error);
-      Alert.alert('Error', 'Failed to download devotionals');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        fetchPrograms(),
-        handleSync()
-      ]);
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  // if (error) {
+  //   return <Text>{error.message}</Text>;
+  // }
 
   return (
     <>
@@ -75,15 +33,15 @@ export default function Programs() {
           title: 'Programs',
           headerRight: () => (
             <TouchableOpacity 
-              onPress={handleSync}
+              // onPress={handleSync}
               style={styles.syncButton}
-              disabled={syncing}
+              // disabled={syncing}
             >
-              <Feather 
+              {/* <Feather 
                 name={syncing ? "loader" : "download"} 
                 size={20} 
                 color="#3B82F6"
-              />
+              /> */}
             </TouchableOpacity>
           ),
         }}
@@ -92,7 +50,7 @@ export default function Programs() {
         style={styles.container}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={loading}
             onRefresh={onRefresh}
             tintColor="#4C51BF"
             title="Pull to refresh..."
