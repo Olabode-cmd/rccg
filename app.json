@@ -18,7 +18,17 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "This app uses speech synthesis to read Bible verses aloud.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone for speech synthesis."
+        "NSMicrophoneUsageDescription": "This app uses the microphone for speech synthesis.",
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458002511",
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
+          }
+        ]
+      },
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~1458002511"
       }
     },
     "android": {
@@ -26,7 +36,11 @@
         "foregroundImage": "./assets/images/rccg.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["RECORD_AUDIO"]
+      "permissions": ["RECORD_AUDIO"],
+      "package": "com.bodejr.rccg",
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -47,6 +61,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "566fe771-97d5-41b7-9bae-65a1dddd247c"
+      }
     }
   }
 }

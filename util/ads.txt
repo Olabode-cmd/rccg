@@ -1,0 +1,13 @@
+import { AdMobInterstitial } from "expo-ads-admob";
+
+export async function showInterstitial() {
+  try {
+    await AdMobInterstitial.setAdUnitID(
+      "ca-app-pub-3940256099942544/1033173712"
+    );
+    await AdMobInterstitial.requestAdAsync();
+    await AdMobInterstitial.showAdAsync();
+  } catch (error) {
+    console.log("Interstitial error:", error);
+  }
+}

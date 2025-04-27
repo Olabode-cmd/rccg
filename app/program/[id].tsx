@@ -129,7 +129,7 @@ export default function ProgramDetails() {
                 indicatorColor: '#4C51BF',
                 disabledArrowColor: '#CBD5E0',
               }}
-              maxDate={format(new Date(), 'yyyy-MM-dd')}
+              // maxDate={format(new Date(), 'yyyy-MM-dd')}
               markedDates={{
                 ...markedDates,
                 [selectedDate]: {
@@ -138,11 +138,9 @@ export default function ProgramDetails() {
                 },
               }}
               onDayPress={(day: DateData) => {
-                const today = new Date();
-                const selectedDay = new Date(day.dateString);
-                if (selectedDay <= today) {
-                  setSelectedDate(day.dateString);
-                }
+                // const today = new Date();
+                // const selectedDay = new Date(day.dateString);
+                setSelectedDate(day.dateString);
               }}
             />
 

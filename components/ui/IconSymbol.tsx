@@ -15,6 +15,7 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'notes.fill': 'notes',
   'bible.fill': 'book',
+  'music.note.list': 'music-note'
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

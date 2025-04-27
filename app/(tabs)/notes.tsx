@@ -247,7 +247,7 @@ const Notes = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#F9FAFC',
         paddingTop: 14,
     },
     container: {
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     header: {
-        fontSize: 34,
+        fontSize: 24,
         fontWeight: '700',
         marginBottom: 24,
         marginTop: 12,

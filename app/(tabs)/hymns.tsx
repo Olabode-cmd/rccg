@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { Stack, Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import hymnsData from '@/assets/hymns/db.json';
+import { StatusBar } from 'expo-status-bar';
 
 interface Hymn {
   number: string;
@@ -43,12 +44,16 @@ export default function Hymns() {
 
   return (
     <>
+      <StatusBar style="dark" />
       <Stack.Screen
         options={{
           title: 'Hymns',
         }}
       />
       <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Hymns</Text>
+        </View>
         <View style={styles.searchContainer}>
           <Feather name="search" size={20} color="#64748B" style={styles.searchIcon} />
           <TextInput
@@ -120,6 +125,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFC',
+    paddingTop: 24,
+    paddingHorizontal: 8,
+  },
+  header: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1E293B',
   },
   searchContainer: {
     flexDirection: 'row',

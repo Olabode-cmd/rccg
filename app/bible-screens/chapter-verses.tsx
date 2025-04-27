@@ -83,11 +83,11 @@ const ChapterVerses = () => {
         if (chapterIndex >= currentBookChapters - 1) {
             // If this is not the last book
             if (bookIndex < typedBible.length - 1) {
-                router.push(`/bible/chapter-verses?book=${bookIndex + 1}&chapter=0`);
+                router.push(`/bible-screens/chapter-verses?book=${bookIndex + 1}&chapter=0`);
             }
         } else {
             // Move to next chapter in current book
-            router.push(`/bible/chapter-verses?book=${bookIndex}&chapter=${chapterIndex + 1}`);
+            router.push(`/bible-screens/chapter-verses?book=${bookIndex}&chapter=${chapterIndex + 1}`);
         }
     };
 
@@ -98,11 +98,11 @@ const ChapterVerses = () => {
             // If this is not the first book
             if (bookIndex > 0) {
                 const prevBookChapters = typedBible[bookIndex - 1].chapters.length;
-                router.push(`/bible/chapter-verses?book=${bookIndex - 1}&chapter=${prevBookChapters - 1}`);
+                router.push(`/bible-screens/chapter-verses?book=${bookIndex - 1}&chapter=${prevBookChapters - 1}`);
             }
         } else {
             // Move to previous chapter in current book
-            router.push(`/bible/chapter-verses?book=${bookIndex}&chapter=${chapterIndex - 1}`);
+            router.push(`/bible-screens/chapter-verses?book=${bookIndex}&chapter=${chapterIndex - 1}`);
         }
     };
 

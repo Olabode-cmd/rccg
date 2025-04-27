@@ -118,7 +118,7 @@ const OldTestament = () => {
                         renderItem={({ item, index }) => (
                             <Link
                                 href={{
-                                    pathname: '/bible/book-chapters',
+                                    pathname: '/bible-screens/book-chapters',
                                     params: { book: OLD_TESTAMENT_BOOKS[index] }
                                 }}
                                 asChild

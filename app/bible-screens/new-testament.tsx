@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, FlatList, StatusBar } from 'react-native';
-import { useLocalSearchParams, Link, useRouter, Stack } from 'expo-router';
+import { Link, Stack, useRouter } from 'expo-router';
 import bible from "@/assets/bible/en_kjv.json";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-const BookChapters = () => {
-    const params = useLocalSearchParams();
-    const bookIndex = Number(params.book);
+const NewTestament = () => {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme];
     const router = useRouter();
 
+    // Define New Testament book indices (39-65)
+    const NEW_TESTAMENT_BOOKS = Array.from({ length: 27 }, (_, i) => i + 39);
+
     // State declarations
-    const [bookName, setBookName] = useState<string>('');
-    const [chapterCount, setChapterCount] = useState<number>(0);
+    const [bookNames, setBookNames] = useState<string[]>([]);
 
     // Type assertion for Bible structure
     const typedBible = bible as Array<{
@@ -23,14 +23,19 @@ const BookChapters = () => {
         chapters: string[][]
     }>;
 
-    // Get book name and chapter count on component mount
+    // Get book names on component mount
     useEffect(() => {
-        if (bookIndex >= 0 && bookIndex < typedBible.length) {
-            const book = typedBible[bookIndex];
-            setBookName(book.name || book.abbrev || `Book ${bookIndex + 1}`);
-            setChapterCount(book.chapters.length);
-        }
-    }, [bookIndex]);
+        const newTestamentBooks = getTestamentBooks();
+        setBookNames(newTestamentBooks);
+    }, []);
+
+    // Get book names for New Testament
+    const getTestamentBooks = () => {
+        return NEW_TESTAMENT_BOOKS.map(index => {
+            const book = typedBible[index];
+            return book.name || book.abbrev || `Book ${index + 1}`;
+        });
+    };
 
     const handleBack = () => {
         router.back();
@@ -71,29 +76,26 @@ const BookChapters = () => {
             color: colors.tint,
             fontSize: 16,
         },
-        headerText: {
-            fontSize: 20,
-            fontWeight: 'bold',
-            color: colors.text,
-            textAlign: 'center',
-            padding: 16,
+        list: {
+            paddingVertical: 8,
+            paddingHorizontal: 16,
         },
-        chapterGrid: {
-            padding: 16,
-            alignItems: 'center',
+        item: {
+            padding: 20,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.icon,
         },
-        chapterItem: {
-            width: '22%',
-            aspectRatio: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            margin: '1.5%',
-            backgroundColor: colors.tint + '20', // Using tint color with 20% opacity
-            borderRadius: 8,
-        },
-        chapterText: {
+        itemText: {
             fontSize: 18,
             color: colors.text,
+        },
+        testamentTitle: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: colors.text,
+            marginTop: 24,
+            marginBottom: 8,
+            paddingHorizontal: 20,
         },
     });
 
@@ -109,26 +111,25 @@ const BookChapters = () => {
                     <Text style={styles.title}>Holy Bible</Text>
                 </View>
 
-                <View style={styles.container}>
-                    <Text style={styles.headerText}>{bookName}</Text>
+                <View>
+                    <Text style={styles.testamentTitle}>New Testament</Text>
                     <FlatList
-                        data={Array.from({ length: chapterCount }, (_, i) => i + 1)}
+                        data={bookNames}
                         renderItem={({ item, index }) => (
                             <Link
                                 href={{
-                                    pathname: '/bible/chapter-verses',
-                                    params: { book: bookIndex, chapter: index }
+                                    pathname: '/bible-screens/book-chapters',
+                                    params: { book: NEW_TESTAMENT_BOOKS[index] }
                                 }}
                                 asChild
                             >
-                                <TouchableOpacity style={styles.chapterItem}>
-                                    <Text style={styles.chapterText}>{item}</Text>
+                                <TouchableOpacity style={styles.item}>
+                                    <Text style={styles.itemText}>{item}</Text>
                                 </TouchableOpacity>
                             </Link>
                         )}
-                        keyExtractor={(item) => item.toString()}
-                        numColumns={4}
-                        contentContainerStyle={styles.chapterGrid}
+                        keyExtractor={(_, index) => index.toString()}
+                        contentContainerStyle={styles.list}
                     />
                 </View>
             </View>
@@ -136,4 +137,4 @@ const BookChapters = () => {
     );
 };
 
-export default BookChapters;
+export default NewTestament;

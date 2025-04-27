@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+// import { setTestDeviceIDAsync } from 'expo-ads-admob';
 import { Image, StyleSheet, Platform, View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
@@ -6,7 +7,7 @@ import { router } from 'expo-router';
 import { format } from 'date-fns';
 import OtherPrograms from '@/components/OtherPrograms';
 import HomeHymns from '@/components/HomeHymns';
-import { getDailyStudyByDate, Devotional } from '@/util/db';
+import { getDailyStudyByDate, Devotional, fetchAndSyncPrograms } from '@/util/db';
 
 // Hardcoded image import
 import OpenHeavensImg from "@/assets/images/bible-img.jpg";
@@ -23,20 +24,30 @@ const todaysDate = new Date().toLocaleDateString('en-US', {
   day: 'numeric'
 });
 
-// Sample data from API (without images)
-const devotionalData = {
-  id: 1,
-  title: "Open Heavens",
-  theme: "Walking in Divine Wisdom",
-  scripture: "Proverbs 4:7",
-  preview: "Wisdom is the principal thing; therefore get wisdom: and with all thy getting get understanding.",
-  date: todaysDate,
-  author: "Pastor E.A. Adeboye"
-};
-
 const HomeScreen = () => {
   const [todayDevotional, setTodayDevotional] = useState<Devotional | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Add an additional useEffect to ensure data is loaded
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        // Force a fresh fetch from API, falling back to SQLite if API fails
+        await fetchAndSyncPrograms(true);
+      } catch (error) {
+        console.error('Error initializing data:', error);
+      }
+    };
+
+    initializeData();
+  }, []);
+
+  // useEffect(() => {
+  //   const initializeAds = async () => {
+  //     await setTestDeviceIDAsync('EMULATOR');
+  //   };
+  //   initializeAds();
+  // }, []);
 
   const loadTodayDevotional = async () => {
     try {
@@ -140,7 +151,7 @@ const HomeScreen = () => {
         <OtherPrograms />
 
         {/* Hymns Section */}
-        <HomeHymns />
+        {/* <HomeHymns /> */}
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Grow your faith daily with us</Text>

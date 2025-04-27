@@ -41,6 +41,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="hymns"
+        options={{
+          title: 'Hymns',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="music.note.list" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="notes"
         options={{
           title: 'Notes',

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Link } from 'expo-router';
-import bible from "../../assets/bible/en_kjv.json";
+import bible from "@/assets/bible/en_kjv.json";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { StatusBar } from 'expo-status-bar';
 
+// Admob ads
+// import AdBanner from '@/components/AdBanner';
 const Bible = () => {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme];
@@ -115,7 +118,7 @@ const Bible = () => {
                 </View>
 
                 <Link
-                    href={`/bible/chapter-verses?book=${quickNavBook}&chapter=${quickNavChapter - 1}&verse=${quickNavVerse - 1}`}
+                    href={`/bible-screens/chapter-verses?book=${quickNavBook}&chapter=${quickNavChapter - 1}&verse=${quickNavVerse - 1}`}
                     asChild
                 >
                     <TouchableOpacity style={styles.goButton}>
@@ -132,12 +135,12 @@ const Bible = () => {
             <View>
                 <QuickNavigation />
                 <Text style={styles.testamentTitle}>Testaments</Text>
-                <Link href="/bible/old-testament" asChild>
+                <Link href="/bible-screens/old-testament" asChild>
                     <TouchableOpacity style={styles.item}>
                         <Text style={styles.itemText}>Old Testament</Text>
                     </TouchableOpacity>
                 </Link>
-                <Link href="/bible/new-testament" asChild>
+                <Link href="/bible-screens/new-testament" asChild>
                     <TouchableOpacity style={styles.item}>
                         <Text style={styles.itemText}>New Testament</Text>
                     </TouchableOpacity>
@@ -252,13 +255,14 @@ const Bible = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="light-content" backgroundColor="#141414" />
+            <StatusBar style="dark" />
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Holy Bible</Text>
                 </View>
                 {renderTestamentSelection()}
             </View>
+            {/* <AdBanner /> */}
         </SafeAreaView>
     );
 };
