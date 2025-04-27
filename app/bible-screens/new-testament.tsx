@@ -111,7 +111,7 @@ const NewTestament = () => {
                     <Text style={styles.title}>Holy Bible</Text>
                 </View>
 
-                <View>
+                <View style={{ flex: 1 }}>
                     <Text style={styles.testamentTitle}>New Testament</Text>
                     <FlatList
                         data={bookNames}

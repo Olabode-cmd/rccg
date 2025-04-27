@@ -164,7 +164,7 @@ export const getDailyStudyByDate = async (program: string, date: string) => {
 // API Functions with new names
 export async function fetchDailyStudiesFromAPI(): Promise<DailyStudy[]> {
   try {
-    const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/daily-study`);
+    const response = await axios.get(`https://political-rozalin-nilvfgfgfhujkiki-b8a5dc3b.koyeb.app/api/daily-study`);
     console.log('API Response:', response.data);
     return response.data;
   } catch (error) {
@@ -175,7 +175,7 @@ export async function fetchDailyStudiesFromAPI(): Promise<DailyStudy[]> {
 
 export async function fetchDailyStudyByDateFromAPI(date: string): Promise<DailyStudy | null> {
   try {
-    const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/daily-study/${date}`);
+    const response = await axios.get(`https://political-rozalin-nilvfgfgfhujkiki-b8a5dc3b.koyeb.app/api/daily-study/${date}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching daily study for date ${date}:`, error);
@@ -273,7 +273,7 @@ export const fetchAndSyncPrograms = async (
 
   try {
     // Always try API first
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/programs`);
+    const response = await fetch(`https://political-rozalin-nilvfgfgfhujkiki-b8a5dc3b.koyeb.app/api/programs`);
     if (response.ok) {
       const data = await response.json();
       // Save to SQLite

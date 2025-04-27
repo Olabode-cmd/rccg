@@ -36,7 +36,7 @@
         "foregroundImage": "./assets/images/rccg.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["RECORD_AUDIO"],
+      "permissions": ["RECORD_AUDIO", "INTERNET"],
       "package": "com.bodejr.rccg",
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
