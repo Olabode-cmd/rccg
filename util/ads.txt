@@ -11,3 +11,22 @@ export async function showInterstitial() {
     console.log("Interstitial error:", error);
   }
 }
+
+
+
+const speakVerse = (text: string, onComplete?: () => void) => {
+        Speech.speak(text, {
+            onStart: () => {
+            },
+            onDone: () => {
+                onComplete?.();
+            },
+            onError: (error) => {
+                setIsSpeaking(false);
+                setCurrentSpeakingVerse(null);
+            },
+            rate: 0.9,
+            pitch: 1.0,
+            language: 'en-US'
+        });
+    };

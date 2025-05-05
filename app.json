@@ -24,19 +24,27 @@
         "SKAdNetworkItems": [
           {
             "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
           }
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~1458002511"
-      }
+      },
+      "bundleIdentifier": "com.bodejr.rccg"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/rccg.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["RECORD_AUDIO", "INTERNET"],
+      "permissions": [
+        "RECORD_AUDIO",
+        "INTERNET"
+      ],
       "package": "com.bodejr.rccg",
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"

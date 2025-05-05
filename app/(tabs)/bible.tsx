@@ -50,8 +50,23 @@ const Bible = () => {
         const [quickNavChapter, setQuickNavChapter] = useState(1);
         const [quickNavVerse, setQuickNavVerse] = useState(1);
 
-        const chapterCount = getChapterCount(quickNavBook);
-        const verseCount = getVerseCount(quickNavBook, quickNavChapter - 1);
+        // Get the maximum verse count for the current book and chapter
+        const maxVerseCount = getVerseCount(quickNavBook, quickNavChapter - 1);
+
+        // Add this useEffect to validate verse when book or chapter changes
+        useEffect(() => {
+            if (quickNavVerse > maxVerseCount) {
+                setQuickNavVerse(1); // Reset to 1 if current verse is invalid
+            }
+        }, [quickNavBook, quickNavChapter, maxVerseCount]);
+
+        const handleNavigation = () => {
+            console.log('Navigation params:', {
+                book: quickNavBook,
+                chapter: quickNavChapter - 1,
+                verse: quickNavVerse - 1
+            });
+        };
 
         return (
             <View style={styles.quickNavContainer}>
@@ -92,7 +107,7 @@ const Bible = () => {
                                 itemStyle={styles.pickerItem}
                                 dropdownIconColor={colors.text}
                             >
-                                {Array.from({ length: chapterCount }, (_, i) => i + 1).map((num) => (
+                                {Array.from({ length: getChapterCount(quickNavBook) }, (_, i) => i + 1).map((num) => (
                                     <Picker.Item key={num} label={num.toString()} value={num} />
                                 ))}
                             </Picker>
@@ -109,7 +124,7 @@ const Bible = () => {
                                 itemStyle={styles.pickerItem}
                                 dropdownIconColor={colors.text}
                             >
-                                {Array.from({ length: verseCount }, (_, i) => i + 1).map((num) => (
+                                {Array.from({ length: maxVerseCount }, (_, i) => i + 1).map((num) => (
                                     <Picker.Item key={num} label={num.toString()} value={num} />
                                 ))}
                             </Picker>
@@ -120,6 +135,7 @@ const Bible = () => {
                 <Link
                     href={`/bible-screens/chapter-verses?book=${quickNavBook}&chapter=${quickNavChapter - 1}&verse=${quickNavVerse - 1}`}
                     asChild
+                    onPress={handleNavigation}
                 >
                     <TouchableOpacity style={styles.goButton}>
                         <Text style={styles.goButtonText}>Go to Verse</Text>

@@ -7,12 +7,12 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { getDb } from '@/util/db';
 import { StatusBar } from 'expo-status-bar';
 
-interface Note {
-    id: number;
-    title: string;
-    content: string;
-    created_at: number;
-}
+// interface Note {
+//     id: number;
+//     title: string;
+//     content: string;
+//     created_at: number;
+// }
 
 const Notes = () => {
     const [notes, setNotes] = useState<Note[]>([]);

@@ -40,27 +40,32 @@ const ChapterVerses = () => {
         if (bookIndex >= 0 && bookIndex < typedBible.length &&
             chapterIndex >= 0 && chapterIndex < typedBible[bookIndex].chapters.length) {
             const book = typedBible[bookIndex];
+            const chapterVerses = book.chapters[chapterIndex];
             setBookName(book.name || book.abbrev || `Book ${bookIndex + 1}`);
-            setVerses(book.chapters[chapterIndex]);
+            setVerses(chapterVerses);
         }
     }, [bookIndex, chapterIndex]);
 
     // Scroll to initial verse if provided
     useEffect(() => {
         if (initialVerseIndex !== null && verses.length > 0) {
+            // Add a longer delay to ensure content is rendered
             setTimeout(() => {
-                setCurrentSpeakingVerse(initialVerseIndex);
-                flatListRef.current?.scrollToIndex({
-                    index: initialVerseIndex,
-                    animated: true,
-                    viewPosition: 0.3,
-                });
+                const validVerseIndex = Math.min(Math.max(initialVerseIndex, 0), verses.length - 1);
+                if (flatListRef.current) {
+                    flatListRef.current.scrollToIndex({
+                        index: validVerseIndex,
+                        animated: true,
+                        viewPosition: 0.3,
+                    });
+                    setCurrentSpeakingVerse(validVerseIndex);
 
-                // Remove highlight after 2 seconds
-                setTimeout(() => {
-                    setCurrentSpeakingVerse(null);
-                }, 2000);
-            }, 100);
+                    // Remove highlight after 2 seconds
+                    setTimeout(() => {
+                        setCurrentSpeakingVerse(null);
+                    }, 2000);
+                }
+            }, 500); // Increased delay to 500ms
         }
     }, [initialVerseIndex, verses]);
 
@@ -109,10 +114,8 @@ const ChapterVerses = () => {
     const speakVerse = (text: string, onComplete?: () => void) => {
         Speech.speak(text, {
             onStart: () => {
-                // Verse started speaking
             },
             onDone: () => {
-                // Always call onComplete when verse is done, regardless of pause state
                 onComplete?.();
             },
             onError: (error) => {
@@ -404,15 +407,25 @@ const ChapterVerses = () => {
                                 </TouchableOpacity>
                             </View>
                         )}
-                        initialScrollIndex={initialVerseIndex !== null ? initialVerseIndex : 0}
+                        getItemLayout={(data, index) => ({
+                            length: 60, // approximate height of each verse item
+                            offset: 60 * index,
+                            index,
+                        })}
+                        initialNumToRender={20}
+                        maxToRenderPerBatch={20}
+                        windowSize={21}
+                        removeClippedSubviews={false}
                         onScrollToIndexFailed={info => {
                             const wait = new Promise(resolve => setTimeout(resolve, 500));
                             wait.then(() => {
-                                flatListRef.current?.scrollToIndex({
-                                    index: info.index,
-                                    animated: true,
-                                    viewPosition: 0.5
-                                });
+                                if (flatListRef.current) {
+                                    flatListRef.current.scrollToIndex({
+                                        index: info.index,
+                                        animated: true,
+                                        viewPosition: 0.5
+                                    });
+                                }
                             });
                         }}
                     />
