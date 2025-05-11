@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Link } from 'expo-router';
@@ -6,6 +6,9 @@ import bible from "@/assets/bible/en_kjv.json";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBar } from 'expo-status-bar';
+import mobileAds from 'react-native-google-mobile-ads';
+import AdBanner from '@/components/AdBanner';
+import { useInterstitial } from '@/components/AdInterstitial';
 
 // Admob ads
 // import AdBanner from '@/components/AdBanner';
@@ -269,6 +272,23 @@ const Bible = () => {
         },
     });
 
+    // Initialize ads
+    useEffect(() => {
+        mobileAds().initialize();
+    }, []);
+
+    // Show interstitial ad on mount
+    const { show: showInterstitial, loaded: interstitialLoaded } = useInterstitial();
+    const hasShownAdRef = useRef(false); // Track if the ad has been shown
+
+    // Show ad only once on mount
+    useEffect(() => {
+        if (interstitialLoaded && !hasShownAdRef.current) {
+            showInterstitial();
+            hasShownAdRef.current = true; // Mark ad as shown
+        }
+    }, [interstitialLoaded]);
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <StatusBar style="dark" />
@@ -278,6 +298,7 @@ const Bible = () => {
                 </View>
                 {renderTestamentSelection()}
             </View>
+            <AdBanner />
             {/* <AdBanner /> */}
         </SafeAreaView>
     );

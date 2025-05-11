@@ -4,6 +4,7 @@ import { Link, Stack, useRouter } from 'expo-router';
 import bible from "@/assets/bible/en_kjv.json";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import AdBanner from '@/components/AdBanner';
 
 const NewTestament = () => {
     const colorScheme = useColorScheme();
@@ -132,6 +133,7 @@ const NewTestament = () => {
                         contentContainerStyle={styles.list}
                     />
                 </View>
+                <AdBanner />
             </View>
         </SafeAreaView>
     );

@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList } from 'react-native';
 import { Stack, Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import hymnsData from '@/assets/hymns/db.json';
 import { StatusBar } from 'expo-status-bar';
+import mobileAds from 'react-native-google-mobile-ads';
+import AdBanner from '@/components/AdBanner';
+import { useInterstitial } from '@/components/AdInterstitial';
 
 interface Hymn {
   number: string;
@@ -15,9 +18,12 @@ interface Hymn {
   category: string;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export default function Hymns() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const categories = useMemo(() => {
     const allCategories = Object.values(hymnsData.hymns).map(hymn => hymn.category);
@@ -42,6 +48,67 @@ export default function Hymns() {
     return hymns;
   }, [searchQuery, selectedCategory]);
 
+  const paginatedHymns = useMemo(() => {
+    const startIndex = 0;
+    const endIndex = page * ITEMS_PER_PAGE;
+    return filteredHymns.slice(startIndex, endIndex);
+  }, [filteredHymns, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedCategory]);
+
+  const renderHymnItem = useCallback(({ item }: { item: Hymn }) => (
+    <Link
+      key={item.number}
+      href={{
+        pathname: "/hymn/[id]",
+        params: { id: item.number }
+      }}
+      asChild
+    >
+      <TouchableOpacity style={styles.hymnCard}>
+        <View style={[styles.iconContainer, { backgroundColor: '#4C51BF' }]}>
+          <Feather name="music" size={20} color="#FFFFFF" />
+        </View>
+        <View style={styles.hymnContent}>
+          <Text style={styles.hymnTitle}>{item.title}</Text>
+          <Text style={styles.hymnNumber}>Hymn {item.number}</Text>
+        </View>
+        <Feather name="chevron-right" size={20} color="#CBD5E0" />
+      </TouchableOpacity>
+    </Link>
+  ), []);
+
+  const handleEndReached = useCallback(() => {
+    if (paginatedHymns.length < filteredHymns.length) {
+      setPage(prev => prev + 1);
+    }
+  }, [paginatedHymns.length, filteredHymns.length]);
+
+  const renderFooter = useCallback(() => {
+    if (paginatedHymns.length >= filteredHymns.length) {
+      return null;
+    }
+    return (
+      <View style={styles.loadingMore}>
+        <Text style={styles.loadingMoreText}>Loading more hymns...</Text>
+      </View>
+    );
+  }, [paginatedHymns.length, filteredHymns.length]);
+
+  useEffect(() => {
+    mobileAds().initialize();
+  }, []);
+
+  // Show interstitial ad on mount (demo)
+  const { show: showInterstitial, loaded: interstitialLoaded } = useInterstitial();
+  useEffect(() => {
+    if (interstitialLoaded) {
+      showInterstitial();
+    }
+  }, [interstitialLoaded]);
+
   return (
     <>
       <StatusBar style="dark" />
@@ -65,57 +132,20 @@ export default function Hymns() {
           />
         </View>
 
-        {/* <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-          style={{ height: 60 }}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category && styles.categoryButtonActive
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text 
-                style={[
-                  styles.categoryText,
-                  selectedCategory === category && styles.categoryTextActive
-                ]}
-                numberOfLines={1}
-              >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView> */}
-
-        <ScrollView style={styles.hymnsList}>
-          {filteredHymns.map((hymn) => (
-            <Link
-              key={hymn.number}
-              href={{
-                pathname: "/hymn/[id]",
-                params: { id: hymn.number }
-              }}
-              asChild
-            >
-              <TouchableOpacity style={styles.hymnCard}>
-                <View style={[styles.iconContainer, { backgroundColor: '#4C51BF' }]}>
-                  <Feather name="music" size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.hymnContent}>
-                  <Text style={styles.hymnTitle}>{hymn.title}</Text>
-                  <Text style={styles.hymnNumber}>Hymn {hymn.number}</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#CBD5E0" />
-              </TouchableOpacity>
-            </Link>
-          ))}
-        </ScrollView>
+        <FlatList
+          data={paginatedHymns}
+          renderItem={renderHymnItem}
+          keyExtractor={item => item.number}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          contentContainerStyle={styles.listContent}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          initialNumToRender={10}
+        />
+        <AdBanner />
       </View>
     </>
   );
@@ -155,30 +185,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1E293B',
   },
-  categoriesContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-    marginRight: 8,
-  },
-  categoryButtonActive: {
-    backgroundColor: '#4C51BF',
-  },
-  categoryText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: '#FFFFFF',
-  },
-  hymnsList: {
-    paddingHorizontal: 16,
+  listContent: {
+    paddingHorizontal: 8,
+    paddingBottom: 16,
   },
   hymnCard: {
     flexDirection: 'row',
@@ -213,5 +222,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
     marginTop: 2,
+  },
+  loadingMore: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  loadingMoreText: {
+    color: '#64748B',
+    fontSize: 14,
   },
 }); 

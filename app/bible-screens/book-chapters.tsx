@@ -4,6 +4,7 @@ import { useLocalSearchParams, Link, useRouter, Stack } from 'expo-router';
 import bible from "@/assets/bible/en_kjv.json";
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import AdBanner from '@/components/AdBanner';
 
 const BookChapters = () => {
     const params = useLocalSearchParams();
@@ -97,6 +98,33 @@ const BookChapters = () => {
         },
     });
 
+    const renderChapters = () => {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.headerText}>{bookName}</Text>
+                <FlatList
+                    data={Array.from({ length: chapterCount }, (_, i) => i + 1)}
+                    renderItem={({ item, index }) => (
+                        <Link
+                            href={{
+                                pathname: '/bible-screens/chapter-verses',
+                                params: { book: bookIndex, chapter: index }
+                            }}
+                            asChild
+                        >
+                            <TouchableOpacity style={styles.chapterItem}>
+                                <Text style={styles.chapterText}>{item}</Text>
+                            </TouchableOpacity>
+                        </Link>
+                    )}
+                    keyExtractor={(item) => item.toString()}
+                    numColumns={4}
+                    contentContainerStyle={styles.chapterGrid}
+                />
+            </View>
+        );
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <Stack.Screen options={{ headerShown: false }} />
@@ -108,29 +136,8 @@ const BookChapters = () => {
                     </TouchableOpacity>
                     <Text style={styles.title}>Holy Bible</Text>
                 </View>
-
-                <View style={styles.container}>
-                    <Text style={styles.headerText}>{bookName}</Text>
-                    <FlatList
-                        data={Array.from({ length: chapterCount }, (_, i) => i + 1)}
-                        renderItem={({ item, index }) => (
-                            <Link
-                                href={{
-                                    pathname: '/bible-screens/chapter-verses',
-                                    params: { book: bookIndex, chapter: index }
-                                }}
-                                asChild
-                            >
-                                <TouchableOpacity style={styles.chapterItem}>
-                                    <Text style={styles.chapterText}>{item}</Text>
-                                </TouchableOpacity>
-                            </Link>
-                        )}
-                        keyExtractor={(item) => item.toString()}
-                        numColumns={4}
-                        contentContainerStyle={styles.chapterGrid}
-                    />
-                </View>
+                {renderChapters()}
+                <AdBanner />
             </View>
         </SafeAreaView>
     );

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Alert, RefreshControl } from 'react-native';
 import { Stack, Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { syncDailyStudiesWithAPI, usePrograms } from '@/util/db';
-
+import { useInterstitial } from '@/components/AdInterstitial';
+import mobileAds from 'react-native-google-mobile-ads';
 
 interface Program {
   id: number;
@@ -17,6 +18,19 @@ const cleanTitle = (title: string) => {
 
 export default function Programs() {
   const { programs, loading, refreshPrograms } = usePrograms(true);
+
+  // Initialize ads
+  useEffect(() => {
+    mobileAds().initialize();
+  }, []);
+
+  // Show interstitial ad on mount
+  const { show: showInterstitial, loaded: interstitialLoaded } = useInterstitial();
+  useEffect(() => {
+    if (interstitialLoaded) {
+      showInterstitial();
+    }
+  }, [interstitialLoaded]);
 
   const onRefresh = React.useCallback(() => {
     refreshPrograms();

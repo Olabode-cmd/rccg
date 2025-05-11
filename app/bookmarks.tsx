@@ -4,10 +4,25 @@ import { Stack, router } from 'expo-router';
 import { format } from 'date-fns';
 import { Feather } from '@expo/vector-icons';
 import { getBookmarks, removeBookmark, Bookmark, initDatabase } from '@/util/db';
+import { useInterstitial } from '@/components/AdInterstitial';
+import mobileAds from 'react-native-google-mobile-ads';
 
 export default function BookmarksScreen() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Initialize ads
+  useEffect(() => {
+    mobileAds().initialize();
+  }, []);
+
+  // Show interstitial ad on mount
+  const { show: showInterstitial, loaded: interstitialLoaded } = useInterstitial();
+  useEffect(() => {
+    if (interstitialLoaded) {
+      showInterstitial();
+    }
+  }, [interstitialLoaded]);
 
   useEffect(() => {
     loadBookmarks();

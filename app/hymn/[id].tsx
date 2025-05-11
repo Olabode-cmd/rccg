@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import hymnsData from '@/assets/hymns/db.json';
+import AdBanner from '@/components/AdBanner';
 
 interface HymnParams extends Record<string, string> {
   id: string;
@@ -58,6 +59,7 @@ export default function HymnDetails() {
               </View>
             ))}
           </View>
+          <AdBanner />
         </View>
       </ScrollView>
     </>

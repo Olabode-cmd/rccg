@@ -5,6 +5,7 @@ import { Calendar, DateData } from 'react-native-calendars';
 import { getDailyStudyByDate, getDailyStudies, initDatabase, Devotional as DBDevotional, syncDailyStudiesWithAPI } from '@/util/db';
 import { format } from 'date-fns';
 import { Feather } from '@expo/vector-icons';
+import AdBanner from '@/components/AdBanner';
 
 interface Devotional {
   id: number;
@@ -175,6 +176,7 @@ export default function ProgramDetails() {
                 </Text>
               )}
             </View>
+            <AdBanner />
           </>
         )}
       </ScrollView>
